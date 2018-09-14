@@ -6,7 +6,9 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 
 
@@ -14,21 +16,36 @@
 
 int main(void)
 {
-	char *args[MAX_LINE/2 + 1];	/* command line (of 80) has max of 40 arguments */
-    int should_run = 1;
-	
-	int i, upper;
+	char buf[MAX_LINE/2 + 1];	/* command line (of 80) has max of 40 arguments */
+  int should_run = 1;
+  pid_t baby_pid; 
+  int i=0, upper=0;
+ 
 		
     while (should_run){   
         printf("osh>");
         fflush(stdout);
+        fgets(buf,MAX_LINE,stdin);
         
-        /**
-         * After reading user input, the steps are:
-         * (1) fork a child process
-         * (2) the child process will invoke execvp()
-         * (3) if command did not include &, parent will invoke wait()
-         */
+        baby_pid = fork();
+        
+
+        
+        if(baby_pid<0){
+          printf("Not a child or a parent\n");
+          return 1; 
+        }
+        else if(baby_pid==0){
+          char * x[MAX_LINE]={"/bin/bash","-c",buf};
+          execvp(x[0],x);
+          return 0; 
+        }
+        else if (baby_pid > 0){
+          wait(NULL);
+          return 0;
+        
+        }
+        
     }
     
 	return 0;
