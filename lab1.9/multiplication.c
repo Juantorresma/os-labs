@@ -196,8 +196,7 @@ long dotProduct(long *vec1, long *vec2) {
 }
 
 int saveResultMatrix(long *result) {
-	printf("saving...\n");
-	FILE *f = fopen("result.dat", "w+");
+	FILE *f = fopen("resultado.dat", "w+");
 	for (int i = 0; i < 40000; i++) {
 		fprintf(f, "%ld\n", *(result + i));
 	}
