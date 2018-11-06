@@ -33,16 +33,11 @@ void *row_mul(void *args);
 long *test(void);
 
 int main(void) {
-	printf("Reading file A\n");
 	matA = readMatrix("matA.dat");
-	printf("Reading file B\n");
 	matB = readMatrix("matB.dat");
-	printf("begin multiplication");
 	long *result;
-
 	result = multiply(matA, matB);
 	saveResultMatrix(result);
-
 	return EXIT_SUCCESS;
 }
 
@@ -57,7 +52,7 @@ long *multiply(long *matA, long *matB) {
 	for (i = 0; i < 200; i++) {
 		rv = pthread_create(&threads[i], NULL, &row_mul, (void *) i);
 		if (rv != 0) {
-			perror("failed to create child thread");
+			perror("error");
 			return 0;
 		}
 	}
@@ -78,7 +73,6 @@ void *row_mul(void *args) {
 	int row_n = (int) args;
 	int lock;
 	int i;
-	printf("calculating row %d\n", row_n);
 	result_vec = malloc(200 * sizeof(long));
 	row = getRow(row_n, matA);
 	lock = getLock();
