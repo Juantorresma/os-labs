@@ -1,3 +1,3 @@
-gcc multipliplication.c -o -lpthread
+gcc multipliplication.c -o multiplication -lpthread
 
-./multiplier
+./multiplication
