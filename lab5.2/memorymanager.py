@@ -1,96 +1,66 @@
 from numpy import roll, array
 
-def TLB_search(page_number):
-    for tlb_item in TLB:
-        if tlb_item["page"] == page_number:
-            return tlb_item["frame"]
+def Buscar(numPagina):
+    for n in TLB:
+        if n["page"] == numPagina:
+            return n["frame"]
     return None
 
-#Push to TLB
-def TLB_add(TLB, page_number, frame_number):
+def push(TLB, numPagina, numFrame):
     TLB = roll(TLB, 1)
-    TLB[0]["page"] = page_number
-    TLB[0]["frame"] = frame_number
+    TLB[0]["Pagina"] = numPagina
+    TLB[0]["Frame"] = numFrame
     return TLB
 
-def read_virtual_addresses(filename):
-    with open(filename) as f:from numpy import array, roll
-
-#Function for TLB search
-def TLB_search(page_number):
-    for tlb_item in TLB:
-        if tlb_item["page"] == page_number:
-            return tlb_item["frame"]
-    return None
-
-#Push to TLB
-def TLB_add(TLB, page_number, frame_number):
-    TLB = roll(TLB, 1)
-    TLB[0]["page"] = page_number
-    TLB[0]["frame"] = frame_number
-    return TLB
-
-#Read 256 bytes from binary file
-def backing_store_read(page_number):
-    store_add = page_number*256
-    with open("BACKING_STORE.bin", "rb") as f:
-        f.seek(store_add)
+def leerStorage (numPagina):
+    añadirStorage = numPagina*256
+    with open("BACKING_STORE.bin", "rb") as archivo:
+        archivo.seek(añadirStorage)
         for i in range(256):
-            data = f.read(1)
-            physical_memory[frame*PAGE_SIZE+i] = data
+            data = archivo.read(1)
+            memFisica[Frame*tamañoPag+i] = data
 
-#import all virtual addresses from text file
-def read_virtual_addresses(filename):
-    with open(filename) as f:
-        virtual_addresses = f.readlines()
-    return [int(x.strip()) for x in virtual_addresses]
+def leerAddressVirtual(filename):
+    with open(filename) as archivo:
+        addressVirtual = archivo.readlines()
+    return [int(x.strip()) for x in addressVirtual]
 
-def signed_ord(byte):
-        unsigned = ord(byte)
-        return unsigned - 256 if unsigned > 127 else unsigned
+def ordenar(byte):
+        un = ord(byte)
+        return un - 256 if un > 127 else un
 
 if __name__ == "__main__":
     filename = "addresses.txt"
-    #Sizes 
-    PAGE_SIZE = 256
-    NUMBER_OF_PAGES = 256
-    TLB_SIZE = 16
-    #Masks
-    page_number_mask = 65280
-    offset_mask = 255
-    #Data structures
-    page_table = [None]*NUMBER_OF_PAGES
-    physical_memory = [None]*NUMBER_OF_PAGES*PAGE_SIZE
-    #Other
+    tamañoPag = 256
+    numPaginas = 256
+    tamaño = 16
+    numPagMask = 65280
+    pagTabla = [None]*numPaginas
+    memFisica = [None]*numPaginas*tamañoPag
     frame = 0
-    n_hits = 0
-    #TLB
+    cont = 0
     TLB = []
-    #Create table lookaside buffer of size 15
-    for i in range(TLB_SIZE):
+    for i in range(tamaño):
         TLB.append({"page":-1, "frame": -1})
     TLB = array(TLB)
-    #Main program
     with open("test.txt", "w") as myfile:
-        virtual_addresses = read_virtual_addresses(filename)
-        for virtual_add in virtual_addresses:
-            page_number = virtual_add&page_number_mask
-            page_number = page_number>>8
-            page_offset = virtual_add&255
-            tlb_frame = TLB_search(page_number)
-            if tlb_frame:
-                #If hit
-                physical_address = tlb_frame*256 + page_offset
-                n_hits = n_hits + 1
-            elif not page_table[page_number]:
-                #If Page fault read from backing store
-                backing_store_read(page_number)
-                page_table[page_number] = frame
-                TLB = TLB_add(TLB, page_number, frame)
+        addressesVirtuales = leerAddressVirtual(filename)
+        for añadirVirt in addressesVirtuales:
+            numPagina = añadirVirt&numPagMask
+            numPagina = numPagina>>8
+            offset = añadirVirt&255
+            Frame = Buscar(numPagina)
+            if Frame:
+                adressesFis = Frame*256 + offset
+                cont = cont + 1
+            elif not pagTabla[numPagina]:
+                leerStorage(numPagina)
+                pagTabla[numPagina] = frame
+                TLB = push(TLB, numPagina, frame)
                 frame = frame + 1
-                physical_address = page_table[page_number]*256 + page_offset
+                adressesFis = pagTabla[numPagina]*256 + offset
             else:
-                TLB = TLB_add(TLB, page_number, page_table[page_number])
-                physical_address = page_table[page_number]*256 + page_offset
-            value = physical_memory[physical_address]
-            myfile.write("Virtual address: {} Physical address: {} Value: {}\n".format(virtual_add, physical_address, signed_ord(value)))
+                TLB = push(TLB, numPagina, pagTabla[numPagina])
+                adressesFis = pagTabla[numPagina]*256 + offset
+            value = memFisica[adressesFis]
+            myfile.write("Virtual address: {} Physical address: {} Value: {}\n".format(añadirVirt, adressesFis, ordenar(value)))
