@@ -1,7 +1,7 @@
-gcc client3.c -o client3
+gcc client1.c -o client1
 
-gcc server3.c -o server3
+gcc server1.c -o server1
 
-./server3 &
+./server1 &
 
-./client3 ID
+./client1 ID
